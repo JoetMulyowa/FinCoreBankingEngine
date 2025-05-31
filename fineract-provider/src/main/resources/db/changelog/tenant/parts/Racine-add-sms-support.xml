@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements. See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership. The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License. You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied. See the License for the
+    specific language governing permissions and limitations
+    under the License.
+
+-->
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+    <changeSet author="fineract" id="sms-notifications">
+            <insert tableName="c_configuration">
+                <column name="name" value="enable-sms-notifications"/>
+                <column name="value"/>
+                <column name="date_value"/>
+                <column name="string_value"/>
+                <column name="enabled" valueBoolean="false"/>
+                <column name="is_trap_door" valueBoolean="false"/>
+                <column name="description"/>
+            </insert>
+    </changeSet>
+
+    <changeSet id="create-m_sms_notification_account" author="fineract">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="m_sms_notification_account"/>
+            </not>
+        </preConditions>
+        <createTable tableName="m_sms_notification_account">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"  />
+            </column>
+
+            <column name="total_payment_amount" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+            <column name="sms_total_credit" type="INT">
+                <constraints nullable="false" />
+            </column>
+            <column name="sms_total_balance" type="INT">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_active" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="true" />
+            </column>
+            <column name="created_by" type="bigint">
+                <constraints nullable="true" foreignKeyName="FK_m_sms_notification_account-created_by" references="m_appuser(id)"/>
+            </column>
+            <column name="last_modified_by" type="bigint">
+                <constraints nullable="true" foreignKeyName="FK_m_sms_notification_account-lastmodifiedby_id" references="m_appuser(id)"/>
+            </column>
+            <column name="created_on_utc" type="timestamp" defaultValueComputed="now()">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_modified_on_utc" type="timestamp" defaultValueComputed="now()">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-m_sms_notification_message" author="fineract">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="m_sms_notification_account_message"/>
+            </not>
+        </preConditions>
+        <createTable tableName="m_sms_notification_account_message">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"  />
+            </column>
+            <column name="message" type="VARCHAR(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="number" type="VARCHAR(20)">
+                <constraints nullable="true" />
+            </column>
+            <column name="sender_id" type="VARCHAR(20)">
+                <constraints nullable="true" />
+            </column>
+            <column name="sms_response" type="VARCHAR(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="sms_type_enum" type="VARCHAR(20)">
+                <constraints nullable="true" />
+            </column>
+            <column name="has_passed" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="true" />
+            </column>
+            <column name="created_by" type="bigint">
+                <constraints nullable="true" foreignKeyName="FK_m_sms_notification_message-created_by" references="m_appuser(id)"/>
+            </column>
+            <column name="last_modified_by" type="bigint">
+                <constraints nullable="true" foreignKeyName="FK_m_sms_notification_message-lastmodifiedby_id" references="m_appuser(id)"/>
+            </column>
+            <column name="created_on_utc" type="timestamp" defaultValueComputed="now()">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_modified_on_utc" type="timestamp" defaultValueComputed="now()">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="update_active_loans_summary_report_name" author="fineract">
+
+        <update tableName="stretchy_report">
+            <column name="report_name" value="Active Loans Summary"/>
+            <where>report_name = 'Active Loans - Summary' AND report_type = 'Table'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update_active_loans_details_report_name" author="fineract">
+
+        <update tableName="stretchy_report">
+            <column name="report_name" value="Active Loans Details"/>
+            <where>report_name = 'Active Loans - Details' AND report_type = 'Table'</where>
+        </update>
+    </changeSet>
+    <changeSet id="expected_Payments_By_Date_Basic" author="fineract">
+
+        <update tableName="stretchy_report">
+            <column name="report_name" value="Expected Payments By Date Basic"/>
+            <where>report_name = 'Expected Payments By Date - Basic' AND report_type = 'Table'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-Written-Off-Loans" author="fineract">
+
+        <update tableName="stretchy_report">
+            <column name="report_name" value="Written Off Loans"/>
+            <where>report_name = 'Written-Off Loans' AND report_type = 'Table'</where>
+        </update>
+    </changeSet>
+    <changeSet id="update-Aging-Summary-(Arrears-in-Weeks)" author="fineract">
+
+        <update tableName="stretchy_report">
+            <column name="report_name" value="Aging Summary Arrears in Weeks"/>
+            <where>report_name = 'Aging Summary (Arrears in Weeks)' AND report_type = 'Table'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-Aging-Summary-(Arrears-in-Months)" author="fineract">
+
+        <update tableName="stretchy_report">
+            <column name="report_name" value="Aging Summary Arrears in Months"/>
+            <where>report_name = 'Aging Summary (Arrears in Months)' AND report_type = 'Table'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="update-Expected-Payments-By-Date-Basic" author="fineract">
+
+        <update tableName="stretchy_report">
+            <column name="report_name" value="Expected Payments By Date Basic"/>
+            <where>report_name = 'Expected Payments By Date - Basic' AND report_type = 'Table'</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

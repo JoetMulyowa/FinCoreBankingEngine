@@ -34,7 +34,7 @@ dependencies {
     implementation(project(path: ':fineract-branch'))
     implementation(project(path: ':fineract-document'))
     implementation(project(path: ':fineract-progressive-loan'))
-    implementation(project(path: ':fineract-report'))
+    //implementation(project(path: ':fineract-report'))
     implementation(project(path: ':fineract-tax'))
 
     providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
@@ -89,9 +89,6 @@ dependencies {
             'commons-io:commons-io',
             'org.apache.poi:poi',
             'org.apache.poi:poi-ooxml',
-            'org.apache.tika:tika-core',
-            'org.apache.tika:tika-parser-microsoft-module',
-            'org.apache.tika:tika-parser-miscoffice-module',
 
             'org.liquibase:liquibase-core',
 
@@ -113,8 +110,26 @@ dependencies {
             'org.mapstruct:mapstruct',
 
             'io.github.resilience4j:resilience4j-spring-boot3',
+			  //Pentaho
+            'org.apache.poi:poi-ooxml-schemas:4.1.2',
+            'org.pentaho.reporting.engine:classic-core:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.engine:classic-extensions:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.engine:classic-extensions-scripting:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.engine:wizard-core:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.library:libbase:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.library:libxml:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.library:libserializer:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.library:librepository:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.library:libloader:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.library:libformula:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.library:libformat:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.library:libfonts:9.4.0.0-SNAPSHOT',
+            'org.pentaho.reporting.library:libdocbundle:9.4.0.0-SNAPSHOT',
             )
-
+    implementation 'org.apache.tika:tika-core:2.7.0'
+    implementation 'org.apache.tika:tika-parser-microsoft-module:2.7.0'
+    implementation 'org.apache.tika:tika-parser-miscoffice-module:2.7.0'
+    implementation 'org.apache.commons:commons-compress:1.23.0'
     implementation 'software.amazon.msk:aws-msk-iam-auth'
 
     implementation 'io.swagger.core.v3:swagger-jaxrs2-jakarta'
@@ -199,6 +214,7 @@ dependencies {
     implementation 'org.apache.commons:commons-math3'
 
     implementation 'io.github.classgraph:classgraph'
+    implementation 'com.mysql:mysql-connector-j:8.0.33'
 
     // testCompile dependencies are ONLY used in src/test, not src/main.
     // Do NOT repeat dependencies which are ALREADY in implementation or runtimeOnly!

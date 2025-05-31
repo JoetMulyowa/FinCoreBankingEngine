@@ -38,7 +38,7 @@ buildscript {
                 'fineract-tax',
                 'fineract-loan',
                 'fineract-savings',
-                'fineract-report',
+				//'fineract-report',
                 'integration-tests',
                 'twofactor-tests',
                 'oauth2-tests',
@@ -64,7 +64,7 @@ buildscript {
                 'fineract-tax',
                 'fineract-loan',
                 'fineract-savings',
-                'fineract-report',
+				//'fineract-report',
                 'fineract-branch',
                 'fineract-document',
                 'fineract-progressive-loan',
@@ -74,6 +74,7 @@ buildscript {
         npmRepository = 'https://npm.pkg.github.com'
     }
     repositories {
+		maven { url "${rootProject.projectDir}/libs" }
         maven { url 'https://plugins.gradle.org/m2/' }
     }
 
@@ -143,10 +144,18 @@ gitVersioning.apply {
 ext['groovy.version'] = '4.0.17'
 ext['swaggerFile'] = "$rootDir/fineract-provider/build/classes/java/main/static/fineract.json".toString()
 
+def pentahoReportDir = System.properties['user.home'] + System.properties['file.separator'] + '.mifosx' + System.properties['file.separator'] + 'pentahoReports'
+
+copy {
+    from "fineract-report/pentahoReports"
+    into pentahoReportDir
+}
+
 allprojects  {
     group = 'org.apache.fineract'
 
     repositories {
+		maven { url "${rootProject.projectDir}/libs" }
         mavenCentral()
     }
 

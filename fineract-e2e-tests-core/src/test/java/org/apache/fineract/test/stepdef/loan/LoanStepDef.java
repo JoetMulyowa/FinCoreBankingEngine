@@ -122,6 +122,7 @@ import org.apache.fineract.test.messaging.config.EventProperties;
 import org.apache.fineract.test.messaging.event.EventCheckHelper;
 import org.apache.fineract.test.messaging.event.loan.LoanRescheduledDueAdjustScheduleEvent;
 import org.apache.fineract.test.messaging.event.loan.LoanStatusChangedEvent;
+import org.apache.fineract.test.messaging.event.loan.transaction.LoanAccrualAdjustmentTransactionBusinessEvent;
 import org.apache.fineract.test.messaging.event.loan.transaction.LoanAccrualTransactionCreatedBusinessEvent;
 import org.apache.fineract.test.messaging.event.loan.transaction.LoanChargeAdjustmentPostBusinessEvent;
 import org.apache.fineract.test.messaging.event.loan.transaction.LoanChargeOffEvent;
@@ -1989,7 +1990,6 @@ public class LoanStepDef extends AbstractStepDef {
     private List<List<String>> getActualValuesList(List<GetLoansLoanIdLoanChargeData> charges, String paymentDueAtExpected,
             String dueAsOfExpected) {
         List<GetLoansLoanIdLoanChargeData> result;
-
         if (dueAsOfExpected != null) {
             result = charges.stream().filter(t -> {
                 LocalDate dueDate = t.getDueDate();
@@ -1999,7 +1999,6 @@ public class LoanStepDef extends AbstractStepDef {
             result = charges.stream().filter(t -> paymentDueAtExpected.equals(t.getChargeTimeType().getValue()))
                     .collect(Collectors.toList());
         }
-
         return result.stream().map(t -> {
             List<String> actualValues = new ArrayList<>();
             actualValues.add(t.getName() == null ? null : t.getName());
@@ -2007,10 +2006,13 @@ public class LoanStepDef extends AbstractStepDef {
             actualValues.add(t.getChargeTimeType().getValue() == null ? null : t.getChargeTimeType().getValue());
             actualValues.add(t.getDueDate() == null ? null : FORMATTER.format(t.getDueDate()));
             actualValues.add(t.getChargeCalculationType().getValue() == null ? null : t.getChargeCalculationType().getValue());
-            actualValues.add(t.getAmount() == null ? null : String.valueOf(t.getAmount()));
-            actualValues.add(t.getAmountPaid() == null ? null : String.valueOf(t.getAmountPaid()));
-            actualValues.add(t.getAmountWaived() == null ? null : String.valueOf(t.getAmountWaived()));
-            actualValues.add(t.getAmountOutstanding() == null ? null : String.valueOf(t.getAmountOutstanding()));
+
+            actualValues.add(t.getAmount() == null ? null : new Utils.DoubleFormatter(t.getAmount()).format());
+
+            actualValues.add(t.getAmountPaid() == null ? null : new Utils.DoubleFormatter(t.getAmountPaid()).format());
+            actualValues.add(t.getAmountWaived() == null ? null : new Utils.DoubleFormatter(t.getAmountWaived()).format());
+
+            actualValues.add(t.getAmountOutstanding() == null ? null : new Utils.DoubleFormatter(t.getAmountOutstanding()).format());
             return actualValues;
         }).collect(Collectors.toList());
     }
@@ -2332,6 +2334,23 @@ public class LoanStepDef extends AbstractStepDef {
         Long accrualTransactionId = accrualTransaction.getId();
 
         eventAssertion.assertEventRaised(LoanAccrualTransactionCreatedBusinessEvent.class, accrualTransactionId);
+    }
+
+    @Then("LoanAccrualAdjustmentTransactionBusinessEvent is raised on {string}")
+    public void checkLoanAccrualAdjustmentTransactionBusinessEvent(String date) throws IOException {
+        Response<PostLoansResponse> loanCreateResponse = testContext().get(TestContextKey.LOAN_CREATE_RESPONSE);
+        long loanId = loanCreateResponse.body().getLoanId();
+
+        Response<GetLoansLoanIdResponse> loanDetailsResponse = loansApi.retrieveLoan(loanId, false, "transactions", "", "").execute();
+        ErrorHelper.checkSuccessfulApiCall(loanDetailsResponse);
+
+        List<GetLoansLoanIdTransactions> transactions = loanDetailsResponse.body().getTransactions();
+        GetLoansLoanIdTransactions accrualAdjustmentTransaction = transactions.stream()
+                .filter(t -> date.equals(FORMATTER.format(t.getDate())) && "Accrual Adjustment".equals(t.getType().getValue())).findFirst()
+                .orElseThrow(() -> new IllegalStateException(String.format("No Accrual Adjustment transaction found on %s", date)));
+        Long accrualAdjustmentTransactionId = accrualAdjustmentTransaction.getId();
+
+        eventAssertion.assertEventRaised(LoanAccrualAdjustmentTransactionBusinessEvent.class, accrualAdjustmentTransactionId);
     }
 
     @Then("LoanChargeAdjustmentPostBusinessEvent is raised on {string}")
@@ -3203,12 +3222,12 @@ public class LoanStepDef extends AbstractStepDef {
                     actualValues.add(repaymentPeriod.getPrincipalDue() == null ? null : String.valueOf(repaymentPeriod.getPrincipalDue()));
                 case "Interest" ->
                     actualValues.add(repaymentPeriod.getInterestDue() == null ? null : String.valueOf(repaymentPeriod.getInterestDue()));
-                case "Fees" -> actualValues
-                        .add(repaymentPeriod.getFeeChargesDue() == null ? null : String.valueOf(repaymentPeriod.getFeeChargesDue()));
-                case "Penalties" -> actualValues.add(
-                        repaymentPeriod.getPenaltyChargesDue() == null ? null : String.valueOf(repaymentPeriod.getPenaltyChargesDue()));
-                case "Due" -> actualValues.add(
-                        repaymentPeriod.getTotalDueForPeriod() == null ? null : String.valueOf(repaymentPeriod.getTotalDueForPeriod()));
+                case "Fees" -> actualValues.add(repaymentPeriod.getFeeChargesDue() == null ? null
+                        : new Utils.DoubleFormatter(repaymentPeriod.getFeeChargesDue()).format());
+                case "Penalties" -> actualValues.add(repaymentPeriod.getPenaltyChargesDue() == null ? null
+                        : new Utils.DoubleFormatter(repaymentPeriod.getPenaltyChargesDue()).format());
+                case "Due" -> actualValues.add(repaymentPeriod.getTotalDueForPeriod() == null ? null
+                        : new Utils.DoubleFormatter(repaymentPeriod.getTotalDueForPeriod()).format());
                 case "Paid" -> actualValues.add(
                         repaymentPeriod.getTotalPaidForPeriod() == null ? null : String.valueOf(repaymentPeriod.getTotalPaidForPeriod()));
                 case "In advance" -> actualValues.add(repaymentPeriod.getTotalPaidInAdvanceForPeriod() == null ? null
@@ -3218,7 +3237,7 @@ public class LoanStepDef extends AbstractStepDef {
                 case "Waived" -> actualValues.add(repaymentPeriod.getTotalWaivedForPeriod() == null ? null
                         : String.valueOf(repaymentPeriod.getTotalWaivedForPeriod()));
                 case "Outstanding" -> actualValues.add(repaymentPeriod.getTotalOutstandingForPeriod() == null ? null
-                        : String.valueOf(repaymentPeriod.getTotalOutstandingForPeriod()));
+                        : new Utils.DoubleFormatter(repaymentPeriod.getTotalOutstandingForPeriod()).format());
                 default -> throw new IllegalStateException(String.format("Header name %s cannot be found", headerName));
             }
         }
